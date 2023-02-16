@@ -1,7 +1,6 @@
 var fs = require('fs')
 const puppeteer = require('puppeteer');
-
-
+const chalk = require('chalk');
 
 
 const launchSessionHarvester = async () => {
@@ -44,7 +43,7 @@ const launchSessionHarvester = async () => {
                 fs.writeFile('guestSessions.json', newData, err => {
                     // error checking
                     if (err) throw err;
-                    console.log("Guest Session Harvested");
+                    console.log(chalk.cyan('Harvested session: ') + chalk.green(req.headers().authorization));
                 });
                 browser.close()
             }
@@ -53,4 +52,6 @@ const launchSessionHarvester = async () => {
     }
 }
 
-launchSessionHarvester();
+module.exports = {
+    launchSessionHarvester
+}
