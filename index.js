@@ -2,7 +2,6 @@ var fs = require('fs')
 const puppeteer = require('puppeteer');
 const chalk = require('chalk');
 
-
 const launchSessionHarvester = async () => {
     while (true) {
         const browser = await puppeteer.launch({ headless: true });
@@ -21,33 +20,26 @@ const launchSessionHarvester = async () => {
 
         const newTarget = await browser.waitForTarget(target => target.opener() === pageTarget);
 
-
-
-
-
         //get the new page object:
         const newPage = await newTarget.page();
         await newPage.waitForNavigation({ waitUntil: 'networkidle2' })
-        // await newPage.waitForTimeout(5000)
+        //await newPage.waitForTimeout(5000)
         await newPage.setRequestInterception(true);
 
         newPage.reload()
 
+        const guestSessions = fs.readFileSync('guestSessions.json');
+        let myObject = JSON.parse(guestSessions);
+
         newPage.on('request', req => {
             if (req.headers().authorization) {
-                // console.log(req.headers().authorization);
-                var data = fs.readFileSync('guestSessions.json');
-                var myObject = JSON.parse(data);
                 myObject.push(req.headers().authorization);
-                var newData = JSON.stringify(myObject);
-                fs.writeFile('guestSessions.json', newData, err => {
-                    // error checking
-                    if (err) throw err;
-                    console.log(chalk.cyan('Harvested session: ') + chalk.green(req.headers().authorization));
-                });
-                browser.close()
+                const newData = JSON.stringify(myObject);
+                fs.writeFileSync('guestSessions.json', newData);
+                console.log(chalk.cyan('Harvested session: ') + chalk.green(req.headers().authorization));
+                browser.close();
             }
-            req.continue()
+            req.continue();
         });
     }
 }
